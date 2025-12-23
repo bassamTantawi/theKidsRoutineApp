@@ -52,53 +52,52 @@ export function Chatbot({ className = "", height = "600px" }: ChatbotProps) {
 
   return (
     <div className={`rounded-2xl bg-white shadow-sm ring-1 ring-black/5 overflow-hidden ${className}`} style={{ height }}>
+      <Container
+        connected={clientState !== "disconnected"}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Header
+          defaultOpen={false}
+          restartConversation={newConversation}
+          disabled={false}
+          configuration={{
+            botName: BOT_CONFIG.name,
+            botAvatar: BOT_CONFIG.avatar,
+            botDescription: BOT_CONFIG.description,
+          }}
+        />
+        <MessageList
+          botName={BOT_CONFIG.name}
+          botDescription={BOT_CONFIG.description}
+          isTyping={isTyping}
+          showMessageStatus={true}
+          showMarquee={true}
+          messages={messages}
+          sendMessage={sendMessage}
+          renderers={{
+            bubble: TextRenderer,
+          }}
+        />
+        <Composer
+          disableComposer={false}
+          isReadOnly={false}
+          allowFileUpload={false}
+          connected={clientState !== "disconnected"}
+          sendMessage={sendMessage}
+          composerPlaceholder="Ask a question..."
+        />
+      </Container>
       <StylesheetProvider
         radius={1.5}
         fontFamily="Inter"
         variant="solid"
         color="#0090FF"
-      >
-        <Container
-          connected={clientState !== "disconnected"}
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Header
-            defaultOpen={false}
-            restartConversation={newConversation}
-            disabled={false}
-            configuration={{
-              botName: BOT_CONFIG.name,
-              botAvatar: BOT_CONFIG.avatar,
-              botDescription: BOT_CONFIG.description,
-            }}
-          />
-          <MessageList
-            botName={BOT_CONFIG.name}
-            botDescription={BOT_CONFIG.description}
-            isTyping={isTyping}
-            showMessageStatus={true}
-            showMarquee={true}
-            messages={messages}
-            sendMessage={sendMessage}
-            renderers={{
-              bubble: TextRenderer,
-            }}
-          />
-          <Composer
-            disableComposer={false}
-            isReadOnly={false}
-            allowFileUpload={false}
-            connected={clientState !== "disconnected"}
-            sendMessage={sendMessage}
-            composerPlaceholder="Ask a question..."
-          />
-        </Container>
-      </StylesheetProvider>
+      />
     </div>
   );
 }
