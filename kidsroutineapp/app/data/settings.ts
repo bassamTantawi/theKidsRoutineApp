@@ -2,6 +2,8 @@ import type { PeriodKey } from "./routines";
 
 export type KidKey = "Mira" | "Yazan";
 
+export type SettingsTabKey = "family" | "periods";
+
 export type Settings = {
   familyMembers: string[]; // includes kids + parents, etc
   kids: Array<{

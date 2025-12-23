@@ -1,8 +1,5 @@
-/**
- * TODO: Add your actions here
- *
- * This is a placeholder file to initialize the actions directory.
- * You can delete this file once you add your own actions.
- */
+import analyzeImage from "./analyze-image";
 
-export default {};
+export default {
+  analyzeImage,
+};
