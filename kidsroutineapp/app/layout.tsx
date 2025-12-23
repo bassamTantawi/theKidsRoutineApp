@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -28,6 +29,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* Botpress Webchat FAB */}
+        <Script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js" strategy="afterInteractive" />
+        <Script src="https://files.bpcontent.cloud/2025/12/23/00/20251223003346-T9CQDI7E.js" strategy="afterInteractive" defer />
       </body>
     </html>
   );

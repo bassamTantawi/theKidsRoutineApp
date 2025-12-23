@@ -15,7 +15,6 @@ import { addMonths, formatMonthTitle } from "./utils/calendar";
 import { sprinkleStars } from "./utils/stars";
 import { ToastContainer } from "./components/shared/Toast";
 import { LoginScreen } from "./components/shared/LoginScreen";
-import { Chatbot } from "./components/shared/Chatbot";
 import { RoutinesView } from "./components/routines/RoutinesView";
 import { CalendarView } from "./components/calendar/CalendarView";
 import { EventDetailsModal } from "./components/calendar/EventDetailsModal";
@@ -251,19 +250,12 @@ function HomeContent() {
           />
         ) : (
           <>
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div>
-                <CalendarView
-                  month={month}
-                  eventsByDate={eventsByDate}
-                  onDateClick={setSelectedDate}
-                  onAddEvent={openAddEventForm}
-                />
-              </div>
-              <div>
-                <Chatbot height="600px" />
-              </div>
-            </div>
+            <CalendarView
+              month={month}
+              eventsByDate={eventsByDate}
+              onDateClick={setSelectedDate}
+              onAddEvent={openAddEventForm}
+            />
 
             {selectedDate && (
               <EventDetailsModal
