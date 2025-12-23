@@ -7,6 +7,7 @@ import { defaultSettings } from "../data/settings";
 import type { AppConfig } from "../data/config";
 import { getAppConfig } from "../data/config";
 import type { PeriodKey } from "../data/routines";
+import { Chatbot } from "../components/shared/Chatbot";
 
 export default function ParentsPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -149,40 +150,47 @@ export default function ParentsPage() {
         </header>
 
         <main className="space-y-6">
-          <section className="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur">
-            <h2 className="mb-4 text-xl font-extrabold text-zinc-900">Welcome to Parents View</h2>
-            <p className="text-sm text-zinc-700">
-              Use the <strong>Setup</strong> button above to configure your family settings, customize periods, and manage your kids' routines.
-            </p>
-          </section>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="space-y-6">
+              <section className="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur">
+                <h2 className="mb-4 text-xl font-extrabold text-zinc-900">Welcome to Parents View</h2>
+                <p className="text-sm text-zinc-700">
+                  Use the <strong>Setup</strong> button above to configure your family settings, customize periods, and manage your kids' routines.
+                </p>
+              </section>
 
-          <section className="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur">
-            <h2 className="mb-4 text-xl font-extrabold text-zinc-900">Quick Actions</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setSettingsTab("family");
-                  setSettingsOpen(true);
-                }}
-                className="rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 p-4 text-left text-white shadow-sm ring-1 ring-black/5 hover:from-emerald-600 hover:to-sky-600"
-              >
-                <div className="text-lg font-extrabold">Family Settings</div>
-                <div className="mt-1 text-sm text-white/90">Configure family members and kids</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSettingsTab("periods");
-                  setSettingsOpen(true);
-                }}
-                className="rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 p-4 text-left text-white shadow-sm ring-1 ring-black/5 hover:from-pink-600 hover:to-purple-600"
-              >
-                <div className="text-lg font-extrabold">Period Settings</div>
-                <div className="mt-1 text-sm text-white/90">Customize routine periods</div>
-              </button>
+              <section className="rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur">
+                <h2 className="mb-4 text-xl font-extrabold text-zinc-900">Quick Actions</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsTab("family");
+                      setSettingsOpen(true);
+                    }}
+                    className="rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 p-4 text-left text-white shadow-sm ring-1 ring-black/5 hover:from-emerald-600 hover:to-sky-600"
+                  >
+                    <div className="text-lg font-extrabold">Family Settings</div>
+                    <div className="mt-1 text-sm text-white/90">Configure family members and kids</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsTab("periods");
+                      setSettingsOpen(true);
+                    }}
+                    className="rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 p-4 text-left text-white shadow-sm ring-1 ring-black/5 hover:from-pink-600 hover:to-purple-600"
+                  >
+                    <div className="text-lg font-extrabold">Period Settings</div>
+                    <div className="mt-1 text-sm text-white/90">Customize routine periods</div>
+                  </button>
+                </div>
+              </section>
             </div>
-          </section>
+            <div>
+              <Chatbot height="600px" />
+            </div>
+          </div>
         </main>
 
         {/* Settings modal */}

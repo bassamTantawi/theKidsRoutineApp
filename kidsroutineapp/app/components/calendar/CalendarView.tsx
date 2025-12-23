@@ -33,19 +33,19 @@ export function CalendarView({ month, eventsByDate, onDateClick, onAddEvent }: C
   }, [month]);
 
   return (
-    <section className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-black/5 backdrop-blur sm:p-5">
-      <div className="grid grid-cols-7 gap-2">
+    <section className="rounded-2xl bg-white/70 p-3 shadow-sm ring-1 ring-black/5 backdrop-blur sm:p-4">
+      <div className="grid grid-cols-7 gap-1.5">
         {WEEKDAYS.map((d) => (
           <div
             key={d}
-            className="text-center text-xs font-extrabold uppercase tracking-wide text-zinc-700"
+            className="text-center text-xs font-extrabold uppercase tracking-wide text-zinc-600"
           >
             {d}
           </div>
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-2">
+      <div className="mt-2 grid grid-cols-7 gap-1.5">
         {cells.map((c, idx) => (
           <CalendarCell
             key={c.date || `empty-${idx}`}
