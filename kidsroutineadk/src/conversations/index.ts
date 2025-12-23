@@ -29,6 +29,10 @@ export default new Conversation({
       })
       .optional()
       .describe("Event data pending user confirmation"),
+    imageProcessingMode: z
+      .boolean()
+      .optional()
+      .describe("Whether we're currently processing an uploaded image"),
   }),
   handler: async ({ execute, conversation, state, message }) => {
     // Check if the latest message has an image attachment
@@ -50,6 +54,7 @@ export default new Conversation({
       imageUrl =
         (imageAttachment as any)?.url ||
         (imageAttachment as any)?.imageUrl ||
+        (imageAttachment as any)?.src ||
         (message.payload as any)?.imageUrl;
     }
 
@@ -60,7 +65,7 @@ export default new Conversation({
     const createEventTool = new Autonomous.Tool({
       name: "create_event",
       description:
-        "Create a new event in the EventsTable. Use this after the user has confirmed the event details.",
+        "Create a new event in the EventsTable. Use this after the user has confirmed the event details. The eventId will be auto-generated if not provided.",
       input: z.object({
         clientId: z
           .string()
@@ -68,7 +73,8 @@ export default new Conversation({
           .describe("Client ID for the event"),
         eventId: z
           .string()
-          .describe("Unique event ID (e.g., 'ev-001')"),
+          .optional()
+          .describe("Unique event ID (e.g., 'ev-001'). If not provided, will be auto-generated."),
         date: z.string().describe("Event date in ISO format (e.g., '2025-12-19')"),
         name: z.string().describe("Event name"),
         startTime: z.string().describe("Start time (e.g., '17:00')"),
@@ -86,11 +92,20 @@ export default new Conversation({
       }),
       handler: async ({ input }) => {
         try {
+          // Auto-generate eventId if not provided
+          let eventId = input.eventId;
+          if (!eventId) {
+            // Generate a unique event ID based on timestamp
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 1000);
+            eventId = `ev-${timestamp}-${random}`;
+          }
+
           const { rows } = await EventsTable.createRows({
             rows: [
               {
                 clientId: input.clientId,
-                eventId: input.eventId,
+                eventId: eventId,
                 date: input.date,
                 name: input.name,
                 startTime: input.startTime,
@@ -104,13 +119,13 @@ export default new Conversation({
 
           return {
             success: true,
-            eventId: rows[0]?.eventId || input.eventId,
+            eventId: rows[0]?.eventId || eventId,
             message: `Event "${input.name}" has been created successfully!`,
           };
         } catch (error) {
           return {
             success: false,
-            eventId: input.eventId,
+            eventId: input.eventId || "unknown",
             message: `Failed to create event: ${
               error instanceof Error ? error.message : String(error)
             }`,
@@ -232,63 +247,52 @@ export default new Conversation({
       },
     });
 
-    // Build instructions with image context if available
-    let imageContext = "";
+    // AUTONOMOUS NODE: Image Processing and Event Management
+    // This autonomous node handles image uploads, extracts event information,
+    // confirms with the user, and saves to the EventsTable
+    
     if (hasImage && imageUrl) {
-      imageContext = `\n\n## IMPORTANT: The user has just uploaded an image!
-The image URL is: ${imageUrl}
+      // Autonomous node specifically for image processing
+      await execute({
+        model: "openai:gpt-4o-mini",
+        instructions: `You are an autonomous image processing assistant specialized in extracting event information from images.
 
-You MUST:
-1. Immediately call the analyze_image tool with image_url="${imageUrl}" to analyze the image
-2. Extract all information from the image
-3. Determine if it contains event information
-4. If it's an event, present the details and ask for confirmation before creating it
-5. If it's not an event, acknowledge what you see and offer help
-
-Do NOT skip analyzing the image - this is the user's request!`;
-    }
-
-    await execute({
-      model: hasImage ? "openai:gpt-4o-mini" : undefined,
-      instructions: `You are a friendly and helpful assistant that helps users manage events by analyzing images.
-
-## Your Personality
-- Be warm, friendly, and approachable
-- Use a conversational, helpful tone
-- Show enthusiasm when helping users
-- Be patient and understanding
-
-## Core Functionality
-
-### When a User Uploads an Image:
-1. **Automatically analyze the image** using the analyze_image tool to extract information
-2. **Check if it looks like an event** (calendar, invitation, flyer, poster, etc.)
-3. If it's an event:
-   - Extract all event details (name, date, time, location, participants, etc.)
-   - Present the extracted information to the user in a clear, friendly format
-   - **Ask for confirmation** before creating the event: "I found this event information. Would you like me to add it to your calendar?"
-   - Wait for user confirmation (yes/confirm/ok/go ahead/etc.)
-   - Once confirmed, use the create_event tool to save it
-4. If it's not an event:
+## Your Primary Task
+The user has just uploaded an image. Your job is to:
+1. **IMMEDIATELY analyze the image** using the analyze_image tool with image_url="${imageUrl}"
+2. Extract ALL information from the image (event name, date, time, location, participants, description, etc.)
+3. Determine if the image contains event information (calendar, invitation, flyer, poster, event details, etc.)
+4. If it's an event:
+   - Present the extracted information in a clear, structured format
+   - **MUST ask for user confirmation** before saving: "I found this event information. Would you like me to add it to your calendar?"
+   - Wait for explicit user confirmation (yes, confirm, ok, go ahead, please, etc.)
+   - Once confirmed, use the create_event tool to save it to the EventsTable
+5. If it's not an event:
    - Acknowledge what you see in the image
    - Offer to help with something else
 
-### Managing Events:
-- Use find_events to search for existing events
-- Use update_event to modify existing events
-- Use create_event to add new events (only after user confirmation)
-
 ## Important Rules:
-- **Always confirm with the user** before creating an event from an image
-- Extract as much information as possible from images
-- If information is missing (like date or time), ask the user to clarify
-- Be helpful with general questions and conversation
-- If you're not sure about something, ask the user
+- **ALWAYS confirm with the user** before creating an event - NEVER save without confirmation
+- Extract as much information as possible from the image
+- If critical information is missing (like date or time), ask the user to clarify before saving
+- Be friendly, warm, and helpful
+- Use the analyze_image tool FIRST when an image is uploaded
+
+## Event Information Format:
+When extracting event information, look for:
+- Event name/title (required)
+- Date (convert to ISO format: YYYY-MM-DD, required)
+- Start time (format: HH:MM in 24-hour format, required)
+- End time (format: HH:MM in 24-hour format, required)
+- Location/venue (required)
+- Participants/attendees (as an array, required - can be empty array if none)
+- Description/details (optional)
+- eventId (optional - will be auto-generated if not provided)
 
 ## Example Flow:
-User: [uploads image of event flyer]
-You: "I can see this is an event flyer! Let me analyze it for you..."
-[Call analyze_image tool]
+User: [uploads image]
+You: "I can see you've uploaded an image! Let me analyze it for you..."
+[Call analyze_image tool immediately]
 You: "I found this event information:
 - Event: School Winter Show
 - Date: December 19, 2025
@@ -299,14 +303,49 @@ You: "I found this event information:
 Would you like me to add this to your calendar?"
 
 User: "Yes, please!"
-You: [Call create_event tool]
-You: "Perfect! I've added the School Winter Show to your calendar. Is there anything else I can help you with?"${imageContext}`,
-      tools: [
-        analyzeImageTool,
-        createEventTool,
-        findEventsTool,
-        updateEventTool,
-      ],
-    });
+You: [Call create_event tool with all extracted details]
+You: "Perfect! I've added the School Winter Show to your calendar. Is there anything else I can help you with?"`,
+        tools: [
+          analyzeImageTool,
+          createEventTool,
+          findEventsTool,
+          updateEventTool,
+        ],
+      });
+    } else {
+      // General conversation autonomous node
+      await execute({
+        instructions: `You are a friendly and helpful assistant that helps users manage events.
+
+## Your Personality
+- Be warm, friendly, and approachable
+- Use a conversational, helpful tone
+- Show enthusiasm when helping users
+- Be patient and understanding
+
+## Core Functionality
+
+### Managing Events:
+- Use find_events to search for existing events
+- Use update_event to modify existing events
+- Use create_event to add new events (only after user confirmation)
+
+### When Users Upload Images:
+- If a user uploads an image, you should analyze it and extract event information
+- Always confirm with the user before creating an event from an image
+
+## Important Rules:
+- **Always confirm with the user** before creating an event
+- Be helpful with general questions and conversation
+- If you're not sure about something, ask the user
+- Help users find, create, and manage their events`,
+        tools: [
+          analyzeImageTool,
+          createEventTool,
+          findEventsTool,
+          updateEventTool,
+        ],
+      });
+    }
   },
 });
