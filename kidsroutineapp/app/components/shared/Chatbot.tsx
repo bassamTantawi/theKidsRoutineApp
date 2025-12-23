@@ -11,6 +11,7 @@ import {
   renderers,
 } from "@botpress/webchat";
 import { BOT_CONFIG, CLIENT_ID } from "../../config/webchat";
+import { useEnrichedMessages } from "../../hooks/useEnrichedMessages";
 
 // Simple text renderer using default bubble renderer
 function TextRenderer(props: BlockObjects["bubble"]) {
@@ -28,6 +29,8 @@ export function Chatbot({ className = "", height = "600px" }: ChatbotProps) {
     useWebchat({
       clientId: CLIENT_ID,
     });
+
+  const enrichedMessages = useEnrichedMessages(messages, user?.userId);
 
   const sendMessage = async (payload: IntegrationMessage["payload"]) => {
     if (!client) return;
@@ -71,18 +74,18 @@ export function Chatbot({ className = "", height = "600px" }: ChatbotProps) {
             botDescription: BOT_CONFIG.description,
           }}
         />
-        <MessageList
-          botName={BOT_CONFIG.name}
-          botDescription={BOT_CONFIG.description}
-          isTyping={isTyping}
-          showMessageStatus={true}
-          showMarquee={true}
-          messages={messages}
-          sendMessage={sendMessage}
-          renderers={{
-            bubble: TextRenderer,
-          }}
-        />
+          <MessageList
+            botName={BOT_CONFIG.name}
+            botDescription={BOT_CONFIG.description}
+            isTyping={isTyping}
+            showMessageStatus={true}
+            showMarquee={true}
+            messages={enrichedMessages}
+            sendMessage={sendMessage}
+            renderers={{
+              bubble: TextRenderer,
+            }}
+          />
         <Composer
           disableComposer={false}
           isReadOnly={false}
