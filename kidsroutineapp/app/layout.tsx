@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kids Routine App - Family Task Management",
+  title: "Kids Routine App",
   description: "Help your kids stay organized with daily routines, tasks, and family calendar. Track progress and celebrate achievements together!",
 };
 

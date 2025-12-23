@@ -10,7 +10,12 @@ export default new Table({
     // Client identifier (e.g., "client-001")
     clientId: { schema: z.string(), searchable: true },
 
-    // Page title
+    // Shareable family code (e.g., "SUNNY-FALCON-27")
+    // Human-friendly, shareable identifier separate from clientId
+    shareableId: { schema: z.string(), searchable: true },
+
+    // Page title / Family name (e.g., "Bassam's House", "Smith Family")
+    // This is displayed as the browser tab title and in the app header
     title: { schema: z.string(), searchable: true },
 
     // Subtitle / default message
@@ -46,7 +51,8 @@ export default new Table({
 export type ConfigRow = {
   id: string;
   clientId: string;
-  title: string;
+  shareableId: string; // Shareable family code (e.g., "SUNNY-FALCON-27")
+  title: string; // Page title / Family name (e.g., "Bassam's House")
   subtitle: string;
   kids: Array<{
     name: string;

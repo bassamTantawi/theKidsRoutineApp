@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "adk dev",
+    "dev:logs": "adk dev --logs",
     "build": "adk build",
     "deploy": "adk deploy"
   },

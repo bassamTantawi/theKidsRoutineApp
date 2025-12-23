@@ -1,5 +1,6 @@
 import { Workflow, z, context } from "@botpress/runtime";
 import ConfigTable from "../tables/config";
+import { generateShareableCode } from "../utils/shareable-code";
 
 /**
  * Idempotent seeder for ConfigTable:
@@ -66,8 +67,25 @@ export default new Workflow({
         console.log("[SEED_CONFIG] Deleted existing config");
       }
 
+      // Generate unique shareable family code
+      console.log("[SEED_CONFIG] Generating shareable family code...");
+      const shareableId = await generateShareableCode(async (code) => {
+        // Check if this code already exists in the ConfigTable
+        const { rows } = await ConfigTable.findRows({
+          filter: {
+            shareableId: { $eq: code },
+          },
+          limit: 1,
+        });
+        // Return true if code is available (no existing rows found)
+        return rows.length === 0;
+      });
+      console.log("[SEED_CONFIG] Generated shareable code:", shareableId);
+
       const seedRow = {
         clientId,
+        shareableId,
+        // Page title / Family name - displayed in browser tab and app header
         title: "Bassam's House",
         subtitle: "Pick a list and let's start crushing these tasks! 🚀",
         kids: [
