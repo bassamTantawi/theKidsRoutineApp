@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { AppConfig } from "../data/config";
 import { getAppConfig } from "../data/config";
 
-export function useAppConfig() {
+export function useAppConfig(shareableId?: string) {
   const [appConfig, setAppConfig] = useState<AppConfig>(() => {
     return {
       app: { pageTitle: "Loading...", defaultMessage: "" },
@@ -16,7 +16,9 @@ export function useAppConfig() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const config = await getAppConfig("default");
+        const config = shareableId
+          ? await getAppConfig({ shareableId })
+          : await getAppConfig("default");
         setAppConfig(config);
         
         // Update page title dynamically
@@ -30,7 +32,7 @@ export function useAppConfig() {
       }
     }
     fetchConfig();
-  }, []);
+  }, [shareableId]);
 
   return { appConfig, configLoading };
 }

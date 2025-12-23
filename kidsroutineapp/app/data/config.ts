@@ -81,12 +81,26 @@ const createFallbackConfig = (): AppConfig => ({
 
 /**
  * Fetches config from Botpress ConfigTable via API
- * @param clientId - Client ID (defaults to "default")
+ * @param options - Either clientId (defaults to "default") or shareableId
  * @returns AppConfig from Botpress or fallback config if API fails
  */
-export async function getAppConfig(clientId: string = "default"): Promise<AppConfig> {
+export async function getAppConfig(
+  options: string | { clientId?: string; shareableId?: string } = "default"
+): Promise<AppConfig> {
   try {
-    const response = await fetch(`/api/config?clientId=${encodeURIComponent(clientId)}`);
+    let url = "/api/config?";
+    if (typeof options === "string") {
+      // Backward compatibility: treat string as clientId
+      url += `clientId=${encodeURIComponent(options)}`;
+    } else {
+      if (options.shareableId) {
+        url += `id=${encodeURIComponent(options.shareableId)}`;
+      } else {
+        url += `clientId=${encodeURIComponent(options.clientId || "default")}`;
+      }
+    }
+
+    const response = await fetch(url);
     if (response.ok) {
       const data = await response.json();
       return data.config;

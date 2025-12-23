@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { PeriodKey } from "./data/routines";
 import { routinesData } from "./data/routines";
@@ -13,6 +14,7 @@ import { useTaskCompletion } from "./hooks/useTaskCompletion";
 import { addMonths, formatMonthTitle } from "./utils/calendar";
 import { sprinkleStars } from "./utils/stars";
 import { ToastContainer } from "./components/shared/Toast";
+import { LoginScreen } from "./components/shared/LoginScreen";
 import { RoutinesView } from "./components/routines/RoutinesView";
 import { CalendarView } from "./components/calendar/CalendarView";
 import { EventDetailsModal } from "./components/calendar/EventDetailsModal";
@@ -21,12 +23,15 @@ import { AddEventForm } from "./components/calendar/AddEventForm";
 type TabKey = "routines" | "calendar";
 type SettingsTabKey = "family" | "periods";
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const shareableId = searchParams.get("id") || searchParams.get("shareableId");
+
   const [tab, setTab] = useState<TabKey>("routines");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTabKey>("family");
 
-  const { appConfig } = useAppConfig();
+  const { appConfig } = useAppConfig(shareableId || undefined);
   const { settings, setSettings } = useSettings(appConfig);
   const { events, refreshEvents } = useEvents();
   const { toasts, pushToast } = useToasts();
@@ -108,6 +113,11 @@ export default function Home() {
   function handleEventFormSuccess() {
     refreshEvents();
     setSelectedDate(eventFormDate);
+  }
+
+  // Show login screen if no shareable ID is provided
+  if (!shareableId) {
+    return <LoginScreen />;
   }
 
   return (
@@ -295,5 +305,21 @@ export default function Home() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-b from-pink-100 via-sky-100 to-emerald-100 font-sans text-zinc-900 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-zinc-700">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }

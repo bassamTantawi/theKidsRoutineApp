@@ -18,22 +18,36 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get clientId from query parameter, default to "default"
+    // Get clientId or shareableId from query parameters
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get("clientId") || "default";
+    const clientId = searchParams.get("clientId");
+    const shareableId = searchParams.get("shareableId") || searchParams.get("id");
+
+    // Build filter based on which parameter is provided
+    let filter: any;
+    if (shareableId) {
+      // Normalize shareableId to uppercase for case-insensitive lookup
+      filter = {
+        shareableId: { $eq: shareableId.toUpperCase() },
+      };
+    } else {
+      // Default to clientId or "default"
+      filter = {
+        clientId: { $eq: clientId || "default" },
+      };
+    }
 
     // Fetch config from ConfigTable using Botpress client
     const { rows } = await client.findTableRows({
       table: "ConfigTable",
-      filter: {
-        clientId: { $eq: clientId },
-      },
+      filter,
       limit: 1,
     });
 
     if (rows.length === 0) {
+      const identifier = shareableId ? `shareableId: ${shareableId}` : `clientId: ${clientId || "default"}`;
       return NextResponse.json(
-        { error: `Config not found for clientId: ${clientId}` },
+        { error: `Config not found for ${identifier}` },
         { status: 404 }
       );
     }
